@@ -9,7 +9,7 @@
 import unicodedata
 import sys, io
 def strip_accents(s):
-    return ''.join(c for c in unicodedata.normalize('NFD', s)
+    return ''.join(c for c in unicodedata.normalize('NFC', s)
         if unicodedata.category(c) != 'Mn')
 
 in_stream = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8')

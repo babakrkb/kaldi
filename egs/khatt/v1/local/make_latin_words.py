@@ -37,7 +37,7 @@ map = {
     'غ': 'gh',
     'ف': 'fa',
     'ق': 'ka',
-    'ك': 'ke',
+    'ك': 'ke', 
     'ل': 'la',
     'م': 'ma',
     'ن': 'na',
@@ -45,6 +45,11 @@ map = {
     'و': 'wa',
     'ى': 'ee',
     'ي': 'ya',
+    'پ': 'pe',
+    'گ': 'ge',
+    'چ': 'ce',
+    'ژ': 'ze',
+    'ؤ': 'va'
 }
 
 connecting = {
@@ -82,7 +87,12 @@ connecting = {
   'he': True,
   'wa': False,
   'ee': False,
-  'ya': True
+  'ya': True,
+  'pe': True,
+  'ge': True,
+  'ze': False,
+  'ce': True,
+  'va': False
 }
 
 in_stream = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
@@ -122,7 +132,7 @@ for line in in_stream:
             elif char == '>':
                 lastChar = 'gtchar'
             else:
-                lastChar = char
+                lastChar = char 
             lastType = "A"
             connected=False
     if lastType == "M":
