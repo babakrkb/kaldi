@@ -55,13 +55,25 @@ fi
 
 if [ $stage -le 4 ]; then
   echo "$0: Preparing dictionary and lang..."
+  cat data/train/text | cut -d' ' -f1 > data/train/ids
+  cat data/train/text | cut -d' ' -f2- | python3 local/reverse_and_space.py | python3 local/prepend_words.py > data/train/pre_text
+  python3 local/bpe.py
+  paste -d' ' data/train/ids data/train/text_bpe | sed 's/@@//g'  > data/train/final_text
+  mv data/train/text data/train/text.old
+  mv data/train/final_text data/train/text
   local/prepare_dict.sh
-  utils/prepare_lang.sh --num-sil-states 4 --num-nonsil-states 8 --sil-prob 0.9999 \
+  utils/prepare_lang.sh --num-sil-states 4 --num-nonsil-states 8 --sil-prob 0.0 --position-dependent-phones false \
                         data/local/dict "<sil>" data/lang/temp data/lang
 fi
 
 if [ $stage -le 5 ]; then
   echo "$0: Estimating a language model for decoding..."
+  cat data/dev/text | cut -d' ' -f1 > data/dev/ids
+  cat data/dev/text | cut -d' ' -f2- | python3 local/reverse_and_space.py | python3 local/prepend_words.py > data/dev/pre_text
+  python3 local/bpe.py
+  paste -d' ' data/dev/ids data/dev/text_bpe | sed 's/@@//g'  > data/dev/final_text
+  mv data/dev/text data/dev/text.old
+  mv data/dev/final_text data/dev/text
   local/train_lm.sh
   utils/format_lm.sh data/lang data/local/local_lm/data/arpa/3gram_unpruned.arpa.gz \
                      data/local/dict/lexicon.txt data/lang_test
@@ -69,7 +81,7 @@ fi
 
 if [ $stage -le 6 ]; then
   echo "$0: Calling the flat-start chain recipe..."
-  local/chain/run_flatstart_cnn1a.sh --nj $nj
+  local/chain/run_flatstart_cnn1a.sh --nj $nj  --stage 5
 fi
 
 if [ $stage -le 7 ]; then

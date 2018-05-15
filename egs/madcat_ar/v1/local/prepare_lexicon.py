@@ -19,7 +19,7 @@ for line in text_fh:
     line_vect = line.strip().split(' ')
     for i in range(1,len(line_vect)):
         characters = list(line_vect[i])
-        characters = " ".join(characters)
+        characters = " ".join([ 'SIL' if char == '|' else char for char in characters])
         lex[line_vect[i]] = characters
         if line_vect[i] =='#':
             lex[line_vect[i]] = "<HASH>"

@@ -47,7 +47,7 @@ done
 ref_filtering_cmd="cat"
 [ -x local/wer_output_filter ] && ref_filtering_cmd="local/wer_output_filter"
 [ -x local/wer_ref_filter ] && ref_filtering_cmd="local/wer_ref_filter"
-hyp_filtering_cmd="cat"
+hyp_filtering_cmd="sed 's/ //g' | sed 's/|/ /g'"
 [ -x local/wer_output_filter ] && hyp_filtering_cmd="local/wer_output_filter"
 [ -x local/wer_hyp_filter ] && hyp_filtering_cmd="local/wer_hyp_filter"
 
