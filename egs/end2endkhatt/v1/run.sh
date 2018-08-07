@@ -33,112 +33,46 @@ if [ $stage -le 2 ]; then
 fi
 
 if [ $stage -le 3 ]; then
-  # Feature Extraction
-  echo "Feature Extraction"
-  local/feature_extraction.sh
-
-  for set in 'test' 'validate' 'train'
-  do
-    select-feats 1-48 ark,t:data/feats/feats_${set}.ark,t ark,scp:data/feats/fcombined_$set.ark,data/$set/feats.scp
-    steps/compute_cmvn_stats.sh --fake data/$set data/cmvn data/cmvn
-    utils/validate_data_dir.sh --no-wav data/$set/
-  done
+  echo "$0: Obtaining image groups. calling get_image2num_frames"
+  echo "Date: $(date)."
+  image/get_image2num_frames.py data/train  # This will be needed for the next command
+  # The next command creates a "allowed_lengths.txt" file in data/train
+  # which will be used by local/make_features.py to enforce the images to
+  # have allowed lengths. The allowed lengths will be spaced by 10% difference in length.
+  echo "$0: Obtaining image groups. calling get_allowed_lengths"
+  echo "Date: $(date)."
+  image/get_allowed_lengths.py --frame-subsampling-factor 4 10 data/train
 fi
 
 if [ $stage -le 4 ]; then
-  steps/train_mono.sh --nj $nj \
-    data/train \
-    data/lang \
-    exp/mono
+  for dataset in test validate train; do
+    echo "$0: Extracting features and calling compute_cmvn_stats for dataset:  $dataset. "
+    echo "Date: $(date)."
+    local/extract_features.sh --nj $nj --cmd $cmd --feat-dim 40 data/$dataset
+    steps/compute_cmvn_stats.sh data/$dataset || exit 1;
+  done
+  echo "$0: Fixing data directory for train dataset"
+  echo "Date: $(date)."
+  utils/fix_data_dir.sh data/train
 fi
 
 if [ $stage -le 5 ]; then
-  utils/mkgraph.sh --mono data/lang \
-    exp/mono \
-    exp/mono/graph
-  steps/decode.sh --nj $nj --cmd $cmd \
-    exp/mono/graph \
-    data/test \
-    exp/mono/decode_test
+  echo "$0: Calling the flat-start chain recipe..."
+  echo "Date: $(date)."
+  local/chain/run_flatstart_cnn1a.sh --nj $nj
 fi
 
 if [ $stage -le 6 ]; then
-  steps/align_si.sh --nj $nj \
-    data/train data/lang \
-    exp/mono \
-    exp/mono_ali
-  steps/train_deltas.sh \
-    500 20000 data/train data/lang \
-    exp/mono_ali \
-    exp/tri
+  echo "$0: Aligning the training data using the e2e chain model..."
+  echo "Date: $(date)."
+  steps/nnet3/align.sh --nj $nj --cmd "$cmd" \
+                       --use-gpu false \
+                       --scale-opts '--transition-scale=1.0 --self-loop-scale=1.0 --acoustic-scale=1.0' \
+                       data/train data/lang exp/chain/e2e_cnn_1a exp/chain/e2e_ali_train
 fi
 
 if [ $stage -le 7 ]; then
-  utils/mkgraph.sh data/lang \
-    exp/tri \
-    exp/tri/graph
-  steps/decode.sh --nj $nj --cmd $cmd \
-    exp/tri/graph \
-    data/test \
-    exp/tri/decode_test
-fi
-
-if [ $stage -le 8 ]; then
-  steps/align_si.sh --nj $nj --cmd $cmd \
-    data/train data/lang \
-    exp/mono \
-    exp/mono_ali
-  steps/train_lda_mllt.sh --cmd $cmd \
-    --splice-opts "--left-context=3 --right-context=3" \
-    500 20000 \
-    data/train data/lang \
-    exp/mono_ali exp/tri2
-fi
-
-if [ $stage -le 9 ]; then
-  utils/mkgraph.sh data/lang \
-    exp/tri2 \
-    exp/tri2/graph
-  steps/decode.sh --nj $nj --cmd $cmd \
-    exp/tri2/graph \
-    data/test \
-    exp/tri2/decode_test
-fi
-
-if [ $stage -le 10 ]; then
-  steps/align_fmllr.sh --nj $nj --cmd $cmd \
-    --use-graphs true \
-    data/train data/lang \
-    exp/tri2 \
-    exp/tri2_ali
-  steps/train_sat.sh --cmd $cmd \
-    500 20000 \
-    data/train data/lang \
-    exp/tri2_ali exp/tri3
-fi
-
-if [ $stage -le 11 ]; then
-  utils/mkgraph.sh data/lang \
-    exp/tri3 \
-    exp/tri3/graph
-  steps/decode_fmllr.sh --nj $nj --cmd $cmd \
-    exp/tri3/graph \
-    data/test \
-    exp/tri3/decode_test
-fi
-
-if [ $stage -le 12 ]; then
-  steps/align_fmllr.sh --nj $nj --cmd $cmd \
-    --use-graphs true \
-    data/train data/lang \
-    exp/tri3 \
-    exp/tri3_ali
-fi
-
-if [ $stage -le 13 ]; then
-  local/chain/run_cnn_1a.sh 
-fi
-
-if [ $stage -le 14 ]; then
-  local/chain/run_cnn_chainali_1b.sh --stage 2
+  echo "$0: Building a tree and training a regular chain model using the e2e alignments..."
+  echo "Date: $(date)."
+  local/chain/run_cnn_e2eali_1b.sh --nj $nj
 fi
