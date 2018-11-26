@@ -60,6 +60,10 @@ if [ $stage -le 5 ]; then
     exp/mono/graph \
     data/test \
     exp/mono/decode_test
+  steps/decode.sh --nj $nj --cmd $cmd \
+    exp/mono/graph \
+    data/validate \
+    exp/mono/decode_validate
 fi
 
 if [ $stage -le 6 ]; then
@@ -81,6 +85,10 @@ if [ $stage -le 7 ]; then
     exp/tri/graph \
     data/test \
     exp/tri/decode_test
+  steps/decode.sh --nj $nj --cmd $cmd \
+    exp/tri/graph \
+    data/validate \
+    exp/tri/decode_validate
 fi
 
 if [ $stage -le 8 ]; then
@@ -103,6 +111,10 @@ if [ $stage -le 9 ]; then
     exp/tri2/graph \
     data/test \
     exp/tri2/decode_test
+  steps/decode.sh --nj $nj --cmd $cmd \
+    exp/tri2/graph \
+    data/validate \
+    exp/tri2/decode_validate
 fi
 
 if [ $stage -le 10 ]; then
@@ -125,6 +137,10 @@ if [ $stage -le 11 ]; then
     exp/tri3/graph \
     data/test \
     exp/tri3/decode_test
+  steps/decode_fmllr.sh --nj $nj --cmd $cmd \
+    exp/tri3/graph \
+    data/validate \
+    exp/tri3/decode_validate
 fi
 
 if [ $stage -le 12 ]; then
