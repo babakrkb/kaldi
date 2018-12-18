@@ -15,7 +15,7 @@ if [ $stage -le 0 ]; then
   # Initializing
   echo "Initializing"
   local/khatt_initialize.sh
-  local/khatt_normalize.sh
+  #local/khatt_normalize.sh
 fi
 
 if [ $stage -le 1 ]; then
@@ -34,7 +34,8 @@ if [ $stage -le 2 ]; then
   cat data/train/text | awk '{ for(i=2;i<=NF;i++) print $i;}' | sort -u >train_words.txt
   utils/filter_scp.pl --exclude train_words.txt test_words.txt > diff.txt
   cat diff.txt | awk '{print "id " $1}' >> data/local/lm/train.lines
-  local/prepare_lm.sh --ngram 3 data/local/lm/train.lines data/lang
+  cat data/local/lm/train.lines >> final_lm
+  local/prepare_lm.sh --ngram 3 final_lm data/lang
 fi
 
 if [ $stage -le 3 ]; then
@@ -42,7 +43,7 @@ if [ $stage -le 3 ]; then
   echo "Feature Extraction"
   local/feature_extraction.sh
 
-  for set in 'test'
+  for set in test train
   do
     select-feats 11-38 ark,t:data/feats/feats_${set}.ark,t ark,scp:data/feats/fcombined_$set.ark,data/$set/feats.scp
     steps/compute_cmvn_stats.sh --fake data/$set data/cmvn data/cmvn
@@ -141,9 +142,9 @@ if [ $stage -le 12 ]; then
 fi
 
 if [ $stage -le 13 ]; then
-  local/chain/run_cnn_1a.sh  --stage 6
+  local/chain/run_cnn_1a.sh
 fi
 
 if [ $stage -le 14 ]; then
-  local/chain/run_cnn_chainali_1b.sh --stage 2
+  local/chain/run_cnn_chainali_1b.sh
 fi

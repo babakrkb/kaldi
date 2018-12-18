@@ -7,7 +7,7 @@
 . ./path.sh
 
 mkdir -p data
-for set in 'test'
+for set in test train
 do
   ## Clean up
   if [[ -f tmp.unsorted ]]

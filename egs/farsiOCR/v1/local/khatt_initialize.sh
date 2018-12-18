@@ -13,8 +13,9 @@ source path.sh
 
 
 mkdir -p data/normalized
-for set in 'test' 
+for set in test train
 do
+ echo $set
   # rm tmp.flist
   # if [ "$set" = "train" ]
   # then
@@ -43,19 +44,18 @@ do
   # do
   #   if [ -f "$txtPath" ]
   #   then
-      
   #     base=$(basename $txtPath '.txt')
   #     newId=$(echo $base | sed 's/_\(.*\)_/_\1-/' | local/convert-to-qatip-id.sh khatt)
   #     echo "$newId $(head -1 "$txtPath" | iconv -f 'cp1256' -t 'utf-8' | python3 local/remove_diacritics.py | python3 local/normalize_punctuation.py)" >> data/text.$set
   #     mv data/binaries.tmp/$base.png data/binaries/$newId.png
   #   fi
   # done
-  for textPath in $(ls /export/b01/babak/data/$set/*.txt)
+  for textPath in $(ls /export/b01/babak/farsi/$set/20/*.txt)
   do
     base=$(basename $textPath '.txt')
     newId=$(echo $base | sed 's/_\(.*\)_/_\1-/' | local/convert-to-qatip-id.sh fontt)
     echo "$newId $(cat $textPath | python3 local/remove_diacritics.py | python3 local/normalize_punctuation.py)" >> data/text.$set
-    cp /export/b01/babak/data/$set/$base.png data/normalized/$newId.png
+    cp /export/b01/babak/farsi/$set/20/$base.png data/normalized/$newId.png
   done
 done
 # rm tmp.flist
