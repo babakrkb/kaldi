@@ -53,7 +53,7 @@ do
   for textPath in $(ls /export/b01/babak/farsi/$set/20/*.txt)
   do
     base=$(basename $textPath '.txt')
-    newId=$(echo $base | sed 's/_\(.*\)_/_\1-/' | local/convert-to-qatip-id.sh fontt)
+    newId=$(echo $base | sed 's/_\(.*\)_/_\1-/' | local/convert-to-qatip-id.sh $set)
     echo "$newId $(cat $textPath | python3 local/remove_diacritics.py | python3 local/normalize_punctuation.py)" >> data/text.$set
     cp /export/b01/babak/farsi/$set/20/$base.png data/normalized/$newId.png
   done
