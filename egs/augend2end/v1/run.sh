@@ -20,7 +20,8 @@ fi
 
 if [ $stage -le 1 ]; then
   # data preparation
-  echo "data preparation"
+  echo "data preparation and augmentation"
+  local/khatt_augment.sh
   local/prepare_data.sh
   local/prepare_dict.sh
   utils/prepare_lang.sh --num-sil-states 3 --num-nonsil-states 4 --position-dependent-phones false data/local/dict "<unk>" data/local/lang data/lang
