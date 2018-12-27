@@ -28,7 +28,7 @@ do
 
   ## Image files
   cat data/$set/uttids | sed 's/^\([a-z]\+\)-/\1 /i' | awk '{print "data/normalized/"$1"-"$2".png"}' | xargs -n 1 realpath > data/$set/img.flist
-  paste -d' ' data/$set/uttids data/$set/img.flist > data/$set/img.scp
+  paste -d' ' data/$set/uttids data/$set/img.flist > data/$set/images.scp
 
   ## Speaker mappings
   cat data/$set/uttids | sed 's/^\([^_]\+\)_/\1 /' | awk '{if (NF < 2) print $1" "$1; else print $1"_"$2" "$1}' > data/$set/utt2spk

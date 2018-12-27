@@ -29,7 +29,8 @@ fi
 if [ $stage -le 2 ]; then
   # LM preparation
   echo "LM preparation"
-  local/prepare_lm.sh --ngram 3 data/train/text data/lang
+  cat data/train/text | sed '/^a/ d' > data/train.lm
+  local/prepare_lm.sh --ngram 3 data/train.lm data/lang
 fi
 
 if [ $stage -le 3 ]; then
