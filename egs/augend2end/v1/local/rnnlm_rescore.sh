@@ -13,7 +13,7 @@ lstm_nrpd=200
 embedding_l2=0.001 # embedding layer l2 regularize
 comp_l2=0.001 # component-level l2 regularize
 output_l2=0.001 # output-layer l2 regularize
-epochs=20
+epochs=100
 stage=-10
 train_stage=-10
 
@@ -23,6 +23,7 @@ ngram_order=4
 decode_dir_suffix=rnnlm
 cmd=$train_cmd
 
+. ./path.sh
 . ./cmd.sh
 . ./utils/parse_options.sh
 
@@ -42,7 +43,7 @@ if [ $stage -le 0 ]; then
   mkdir -p $text_dir
   echo -n >$text_dir/dev.txt
   # hold out one in every 500 lines as dev data.
-  cat $text | cut -d' ' -f2- | awk -v text_dir=$text_dir '{if(NR%500 == 0) { print >text_dir"/dev.txt"; } else {print;}}' >$text_dir/khatt.txt
+  cat $text | awk -v text_dir=$text_dir '{if(NR%500 == 0) { print >text_dir"/dev.txt"; } else {print;}}' >$text_dir/khatt.txt
 fi
 
 if [ $stage -le 1 ]; then
@@ -100,7 +101,7 @@ fi
 if [ $stage -le 3 ]; then
   rnnlm/train_rnnlm.sh --num-jobs-initial 1 --num-jobs-final 1 \
                        --embedding_l2 $embedding_l2 \
-                       --stage 1 --num-epochs $epochs --cmd "$cmd" $dir
+                       --num-epochs $epochs --cmd "$cmd" $dir
 fi
 
 LM=tgpr

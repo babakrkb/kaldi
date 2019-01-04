@@ -253,3 +253,7 @@ if [ $stage -le 7 ]; then
     --nj $nj --cmd "$cmd" \
     $dir/graph data/validate $dir/decode_validate || exit 1;
 fi
+
+if [ $stage -le 8 ]; then
+  local/rnnlm_rescore.sh
+fi
