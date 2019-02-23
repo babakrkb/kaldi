@@ -30,8 +30,14 @@ fi
 if [ $stage -le 2 ]; then
   # LM preparation
   echo "LM preparation"
-  cat data/train/text | sed '/^a/ d' > data/train.lm
-  local/prepare_lm.sh --ngram 3 data/train.lm data/lang
+  mkdir -p data/lm
+  local/train_lms_srilm.sh --oov-symbol "<unk>" --train-text data/train/text --dev-text data/validate/text data data/lm
+  echo "2gram.gt01.gz 2gram.kn01.gz 3gram.gt011.gz 3gram.kn011.gz 4gram.gt0111.gz 4gram.kn0111.gz 2gram.me.gz 3gram.me.gz 4gram.me.gz lm.gz" > data/lm/test_lm_list
+  for lm in $(cat data/lm/test_lm_list)
+  do
+    cp -r data/lang data/lang_$lm
+    utils/format_lm.sh data/lang data/lm/$lm data/local/dict/lexicon.txt data/lang_$lm
+  done
 fi
 
 if [ $stage -le 3 ]; then

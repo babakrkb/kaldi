@@ -225,35 +225,44 @@ if [ $stage -le 6 ]; then
   # lang directory, one that contained a wordlist and LM of your choice,
   # as long as phones.txt was compatible.
 
-  utils/mkgraph.sh \
-    --self-loop-scale 1.0 data/$lang_test \
-    $dir $dir/graph || exit 1;
+  for lm in $(cat data/lm/test_lm_list)
+  do
+    utils/mkgraph.sh \
+      --self-loop-scale 1.0 data/lang_$lm \
+      $dir $dir/graph_$lm || exit 1;
+  done
 fi
 
 if [ $stage -le 7 ]; then
   frames_per_chunk=$(echo $chunk_width | cut -d, -f1)
-  steps/nnet3/decode.sh --acwt 1.0 --post-decode-acwt 10.0 \
-    --extra-left-context $chunk_left_context \
-    --extra-right-context $chunk_right_context \
-    --extra-left-context-initial 0 \
-    --extra-right-context-final 0 \
-    --frames-per-chunk $frames_per_chunk \
-    --nj $nj --cmd "$cmd" \
-    $dir/graph data/test $dir/decode_test || exit 1;
+  for lm in $(cat data/lm/test_lm_list)
+  do
+    steps/nnet3/decode.sh --acwt 1.0 --post-decode-acwt 10.0 \
+      --extra-left-context $chunk_left_context \
+      --extra-right-context $chunk_right_context \
+      --extra-left-context-initial 0 \
+      --extra-right-context-final 0 \
+      --frames-per-chunk $frames_per_chunk \
+      --nj $nj --cmd "$cmd" \
+      $dir/graph_$lm data/test $dir/decode_test_$lm || exit 1;
+  done
 fi
 
 if [ $stage -le 7 ]; then
   frames_per_chunk=$(echo $chunk_width | cut -d, -f1)
-  steps/nnet3/decode.sh --acwt 1.0 --post-decode-acwt 10.0 \
-    --extra-left-context $chunk_left_context \
-    --extra-right-context $chunk_right_context \
-    --extra-left-context-initial 0 \
-    --extra-right-context-final 0 \
-    --frames-per-chunk $frames_per_chunk \
-    --nj $nj --cmd "$cmd" \
-    $dir/graph data/validate $dir/decode_validate || exit 1;
+  for lm in $(cat data/lm/test_lm_list)
+  do
+    steps/nnet3/decode.sh --acwt 1.0 --post-decode-acwt 10.0 \
+      --extra-left-context $chunk_left_context \
+      --extra-right-context $chunk_right_context \
+      --extra-left-context-initial 0 \
+      --extra-right-context-final 0 \
+      --frames-per-chunk $frames_per_chunk \
+      --nj $nj --cmd "$cmd" \
+      $dir/graph_$lm data/validate $dir/decode_validate_$lm || exit 1;
+  done
 fi
 
-if [ $stage -le 8 ]; then
-  local/rnnlm_rescore.sh
-fi
+#if [ $stage -le 8 ]; then
+#  local/rnnlm_rescore.sh
+#fi

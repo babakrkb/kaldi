@@ -13,7 +13,7 @@ lstm_nrpd=200
 embedding_l2=0.001 # embedding layer l2 regularize
 comp_l2=0.001 # component-level l2 regularize
 output_l2=0.001 # output-layer l2 regularize
-epochs=100
+epochs=10
 stage=-10
 train_stage=-10
 
@@ -28,7 +28,7 @@ cmd=$train_cmd
 . ./utils/parse_options.sh
 
 
-text=data/train/text
+text=/export/b01/babak/ajdir/AraCorpus/full_text_ara
 wordlist=data/lang/words.txt
 text_dir=data/rnnlm/text
 mkdir -p $dir/config
@@ -43,7 +43,7 @@ if [ $stage -le 0 ]; then
   mkdir -p $text_dir
   echo -n >$text_dir/dev.txt
   # hold out one in every 500 lines as dev data.
-  cat $text | awk -v text_dir=$text_dir '{if(NR%500 == 0) { print >text_dir"/dev.txt"; } else {print;}}' >$text_dir/khatt.txt
+  cat $text | sed -r '/^\s*$/d' | awk -v text_dir=$text_dir '{if(NR%500 == 0) { print >text_dir"/dev.txt"; } else {print;}}' >$text_dir/aracorpus.txt
 fi
 
 if [ $stage -le 1 ]; then
@@ -58,7 +58,7 @@ if [ $stage -le 1 ]; then
   echo "<unk>" >$dir/config/oov.txt
 
   cat > $dir/config/data_weights.txt <<EOF
-khatt   1   1.0
+aracorpus   1   1.0
 EOF
 
   rnnlm/get_unigram_probs.py --vocab-file=$dir/config/words.txt \
@@ -99,14 +99,14 @@ if [ $stage -le 2 ]; then
 fi
 
 if [ $stage -le 3 ]; then
-  rnnlm/train_rnnlm.sh --num-jobs-initial 1 --num-jobs-final 1 \
+  rnnlm/train_rnnlm.sh --num-jobs-initial 1 --num-jobs-final 10 \
                        --embedding_l2 $embedding_l2 \
-                       --num-epochs $epochs --cmd "$cmd" $dir
+                       --stage $train_stage --num-epochs $epochs --cmd "retry.pl queue.pl --config conf/gpu.conf" $dir
 fi
 
 LM=tgpr
 if [ $stage -le 4 ]; then
-  for decode_set in test validate; do
+  for decode_set in test; do
     decode_dir=${ac_model_dir}/decode_${decode_set}
 
     # Lattice rescoring
@@ -114,7 +114,7 @@ if [ $stage -le 4 ]; then
       --cmd "$decode_cmd" \
       --weight 0.8 --max-ngram-order $ngram_order \
       data/lang $dir \
-      data/${decode_set} ${decode_dir} \
+      data/test ${decode_dir} \
       ${decode_dir}_${decode_dir_suffix} &
   done
   wait

@@ -170,7 +170,7 @@ if [ $stage -le 5 ]; then
   fi
 
   steps/nnet3/chain/train.py --stage=$train_stage \
-    --cmd="$cmd" \
+    --cmd="queue.pl --config conf/gpu.conf" \
     --feat.cmvn-opts="--norm-means=false --norm-vars=false" \
     --chain.xent-regularize $xent_regularize \
     --chain.leaky-hmm-coefficient=0.1 \
