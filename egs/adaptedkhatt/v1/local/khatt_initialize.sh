@@ -36,19 +36,18 @@ do
   do
     ls /export/b01/babak/KHATT/KHATT_v1.0/LineImages_v1.0/$folder/*.tif >> tmp.flist
   done
-  $train_cmd JOB=1 ./log/$set.normalize.log /export/b01/babak/prepocressor-0.2.1/prepocressor -inputFile tmp.flist -outputPath "data/binaries.tmp/%base.png" -pipeline 'grayscale| threshold -type BINARY_INV,OTSU|normalize' -nThreads 8
-  mkdir -p data/binaries
-  touch data/text.$set
-  rm data/text.$set
+  # $train_cmd JOB=1 ./log/$set.normalize.log /export/b01/babak/prepocressor-0.2.1/prepocressor -inputFile tmp.flist -outputPath "data/binaries.tmp/%base.png" -pipeline 'grayscale| threshold -type BINARY_INV,OTSU|normalize' -nThreads 8
+  # mkdir -p data/binaries
+  touch data/khatt.$set
+  rm data/khatt.$set
   for txtPath in $(cat tmp.flist | sed 's/LineImages_v1.0\/\([FUa-z]\+\)TextLineImages/GroundTruth_v1.0\/\1TextUnicodeTruthValues-v1.0/' | sed 's/.tif$/.txt/')
   do
     if [ -f "$txtPath" ]
-    then
-      
+    then 
       base=$(basename $txtPath '.txt')
       newId=$(echo $base | sed 's/_\(.*\)_/_\1-/' | local/convert-to-qatip-id.sh khatt)
-      echo "$newId $(head -1 "$txtPath" | iconv -f 'cp1256' -t 'utf-8' | python3 local/remove_diacritics.py | python3 local/normalize_punctuation.py)" >> data/text.$set
-      mv data/binaries.tmp/$base.png data/binaries/$newId.png
+      echo "$newId $(head -1 "$txtPath" | iconv -f 'cp1256' -t 'utf-8' | python3 local/remove_diacritics.py | python3 local/normalize_punctuation.py)" >> data/khatt.$set
+      # mv data/binaries.tmp/$base.png data/binaries/$newId.png
     fi
   done
 done
