@@ -16,6 +16,10 @@ if [ $stage -le 0 ]; then
   echo "Initializing"
   local/khatt_initialize.sh
   local/khatt_normalize.sh
+  mv data/normalized data/pre_normalized
+  ls data/pre_normalized/*.png > templist
+  mkdir -p data/normalized
+  $train_cmd JOB=1 ./log/gray.log /export/b01/babak/prepocressor-0.2.1/prepocressor -inputFile templist -outputPath "data/normalized/%base.png" -pipeline 'grayscale| threshold -type BINARY_INV,OTSU|normalize' -nThreads 8
 fi
 
 if [ $stage -le 1 ]; then
@@ -71,8 +75,16 @@ if [ $stage -le 6 ]; then
                        data/train data/lang exp/chain/e2e_cnn_1a exp/chain/e2e_ali_train
 fi
 
+
 if [ $stage -le 7 ]; then
-  echo "$0: Building a tree and training a regular chain model using the e2e alignments..."
+  echo "$0: Calling the flat-start chain recipe..."
   echo "Date: $(date)."
-  local/chain/run_cnn_e2eali_1b.sh --nj $nj
+  local/chain/run_madcat_khatt.sh --nj $nj
 fi
+
+
+#if [ $stage -le 7 ]; then
+#  echo "$0: Building a tree and training a regular chain model using the e2e alignments..."
+#  echo "Date: $(date)."
+#  local/chain/run_cnn_e2eali_1b.sh --nj $nj
+#fi
