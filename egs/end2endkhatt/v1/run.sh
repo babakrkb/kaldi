@@ -83,8 +83,8 @@ if [ $stage -le 7 ]; then
 fi
 
 
-#if [ $stage -le 7 ]; then
-#  echo "$0: Building a tree and training a regular chain model using the e2e alignments..."
-#  echo "Date: $(date)."
-#  local/chain/run_cnn_e2eali_1b.sh --nj $nj
-#fi
+if [ $stage -le 8 ]; then
+  echo "$0: Building a tree and training a regular chain model using the e2e alignments..."
+  echo "Date: $(date)."
+  local/chain/run_cnn_e2eali_1b.sh --nj $nj
+fi
